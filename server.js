@@ -1,9 +1,29 @@
 // npm start to run with nodemon
+require('dotenv').config();
 const express = require('express');
-const { Builder, By } = require('selenium-webdriver');
+//const { Builder, By } = require('selenium-webdriver');
+
+
+// routes 
+const playerRoutes = require('./routes/prizePicksRouts.js');
+
+// express app
 const app = express();
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+
+  next();
+});
+
+
 // Function to run Selenium script
+/*
 async function runSeleniumScript() {
   let driver = await new Builder().forBrowser('chrome').build();
   let LINK = 'https://api.prizepicks.com/projections?league_id=7';
@@ -41,12 +61,14 @@ async function runSeleniumScript() {
     await driver.quit();
   }
 }
+  */
 
-// this is how a api call will be made to a api
-// app.use('/api', apiRoute);
-
+// EXAMPLE: this is how a api call will be made to a api
+ //app.use('/player', playerRoutes);
+ app.get('/players', playerRoutes);
 
 // Express route to run the script and send filtered data
+/*
 app.get('/run-selenium/players', async (req, res) => {
   try {
     const filteredData = await runSeleniumScript();
@@ -55,6 +77,7 @@ app.get('/run-selenium/players', async (req, res) => {
     res.status(500).send('Error running Selenium script');
   }
 });
+*/
 
 // this logs the mongoDb queries being executed
 // mongoose.set('debug', true);
@@ -65,8 +88,3 @@ app.listen(process.env.PORT, () => {
     console.log(' listening on port', process.env.PORT + '🗿 ')
 })
 
-/*
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
-*/
