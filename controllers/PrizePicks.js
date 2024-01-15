@@ -1,8 +1,5 @@
 const { Builder, By } = require('selenium-webdriver');
 
-//const mongoose = require('mongoose');
-// const Player = require('../models/Player.js);
-
 // GET ALL PLAYERS
 // // Function to run Selenium script and get all players with a prop on prizepicks
 
