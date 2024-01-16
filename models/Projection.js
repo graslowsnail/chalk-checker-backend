@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Schema;
+const Player = require('../models/Player.js');
 
 const schema = mongoose.Schema ({
     type: String,
@@ -14,6 +15,11 @@ const schema = mongoose.Schema ({
     stat_type: String,
     status: String,
     today: Boolean,
+    playerId: Number,
+    playerObject: [{
+        type: ObjectId,
+        ref: 'Player',
+    }],
 });
 
 module.exports = mongoose.model('Projection', schema);

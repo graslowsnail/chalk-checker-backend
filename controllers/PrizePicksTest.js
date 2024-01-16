@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { Builder, By } = require('selenium-webdriver');
 const Player = require('../models/Player'); // Import your Player model
 const Projection = require('../models/Projection'); // Import your Projection model
@@ -19,13 +20,16 @@ async function savePlayersAndProjections(req, res) {
 
     // Filter and process player data
     const playerData = filterAndProcessPlayers(jsonData);
-    // Filter and process projection data
-    const projectionData = filterAndProcessProjections(jsonData);
+    // Filter and process projection data with player references
+    const projectionData = await filterAndProcessProjections(jsonData);
 
     // Save player data to MongoDB
     await Player.insertMany(playerData);
-    // Save projection data to MongoDB
-    await Projection.insertMany(projectionData);
+
+    // Save projection data to MongoDB and populate playerObject field
+    await Projection.insertMany(projectionData).then(async (projections) => {
+      await Projection.populate(projections, { path: 'playerObject' });
+    });
 
     res.json({ players: playerData, projections: projectionData });
   } catch (err) {
@@ -35,6 +39,7 @@ async function savePlayersAndProjections(req, res) {
     await driver.quit();
   }
 }
+
 
 function filterAndProcessPlayers(jsonData) {
   if (Array.isArray(jsonData)) {
@@ -85,27 +90,39 @@ function filterAndProcessPlayers(jsonData) {
   }
 }
 
-function filterAndProcessProjections(jsonData) {
-  if (jsonData && jsonData.data && Array.isArray(jsonData.data)) {
-    const filteredData = jsonData.data
-      .filter((item) => item.type === 'projection' || item.type === 'projection_type')
-      .map((item) => {
-        // Extract only the required fields
-        const { id, attributes } = item;
-        const { description, line_score, start_time, stat_type } = attributes;
 
-        // Modify the filteredData to structure the data as needed
-        return {
-          prizePickId: id, // Use the 'id' as the MongoDB document ID
-          description,
-          line_score,
-          start_time,
-          stat_type,
-          relationships: {
-            league: item.relationships.league?.data?.id || null, // Extract 'league' data as needed
-          },
-        };
-      });
+async function filterAndProcessProjections(jsonData) {
+  if (jsonData && jsonData.data && Array.isArray(jsonData.data)) {
+    const filteredData = await Promise.all(
+      jsonData.data
+        .filter((item) => item.type === 'projection' || item.type === 'projection_type')
+        .map(async (item) => {
+          // Extract only the required fields
+          const { type, id, attributes, relationships } = item;
+          const { description, line_score, start_time, projection_type, stat_type, prizePickId } = attributes;
+          const { new_player } = relationships;
+
+          // Extract 'type' and 'id' from the 'new_player' relationship
+          const newPlayerType = new_player.data.type;
+          const newPlayerId = new_player.data.id;
+
+          // Query the Player collection using Mongoose
+          const player = await Player.findOne({ prizePickId: newPlayerId });
+
+          // Modify the filteredData to structure the data as needed
+          return {
+            type,
+            prizePickId: id, // Use the 'id' as the MongoDB document ID
+            description,
+            line_score,
+            start_time,
+            projection_type,
+            stat_type,
+            playerName: player ? player.name : null,
+            playerObject: player ? player._id : null,
+          };
+        })
+    );
 
     return filteredData;
   } else {
@@ -113,6 +130,9 @@ function filterAndProcessProjections(jsonData) {
     return [];
   }
 }
+
+
+
 
 module.exports = {
   savePlayersAndProjections,
