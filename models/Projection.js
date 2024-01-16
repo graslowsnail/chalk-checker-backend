@@ -16,10 +16,6 @@ const schema = mongoose.Schema ({
     status: String,
     today: Boolean,
     playerId: Number,
-    playerObject: [{
-        type: ObjectId,
-        ref: 'Player',
-    }],
 });
 
 module.exports = mongoose.model('Projection', schema);

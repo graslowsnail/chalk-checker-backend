@@ -5,7 +5,8 @@ const Projection = require('../models/Projection.js');
 // get all players
 const getPlayersFromMongoDb = async (req, res) => {
   try {
-    const players = await Player.find();
+    const players = await Player.find().populate('projections');
+    console.log(players);
     res.send(players);
   } catch(err) {
     console.log('#### error fetching parts');

@@ -81,36 +81,31 @@ function filterAndProcessPlayers(jsonData) {
 
 
 async function filterAndProcessProjections(jsonData) {
-    const projections = [];
+  const projectionData = jsonData.data.filter((item) =>
+    item.type === 'projection' || item.type === 'projection_type'
+  ).map((item) => {
+    const { attributes } = item;
+    
+    return {
+      type: attributes.type,
+      prizePickId: attributes.prizePickId,
+      board_time: attributes.board_time,
+      description: attributes.description,
+      is_promo: attributes.is_promo,
+      line_score: attributes.line_score,
+      odds_type: attributes.odds_type,
+      projection_type: attributes.projection_type,
+      start_time: attributes.start_time,
+      stat_type: attributes.stat_type,
+      status: attributes.status,
+      today: attributes.today,
+      playerId: attributes.playerId, // Assuming you want to store playerId as well
+    };
+  });
 
-    for (const item of jsonData.data) {
-        if (item.type === 'projection' || item.type === 'projection_type') {
-            const { id, attributes, relationships } = item;
-            const newPlayerId = relationships.new_player.data.id;
-            const player = await Player.findOne({ prizePickId: newPlayerId });
-
-            const newProjection = new Projection({
-                // ... fields from attributes ...
-                playerObject: player ? player._id : null
-            });
-
-            const savedProjection = await newProjection.save();
-
-            if (player) {
-                await Player.findByIdAndUpdate(
-                    player._id,
-                    { $addToSet: { projections: savedProjection._id } },
-                    { new: true }
-                );
-            }
-
-            projections.push(savedProjection);
-        }
-    }
-
-    return projections;
+  const projections = await Projection.insertMany(projectionData);
+  return projections;
 }
-
 
 module.exports = {
   savePlayersAndProjections,
