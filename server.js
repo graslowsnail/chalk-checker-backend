@@ -4,12 +4,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 // routes 
-const playerRoutes = require('./routes/prizePicksRouts.js');
+const prizePicksRouts = require('./routes/prizePicksRouts.js');
+const playerRoutes = require('./routes/playerRoutes.js');
+
 
 // express app
 const app = express();
 
 // EXAMPLE: this is how a api call will be made to a api 
+app.use('/api', prizePicksRouts);
 app.use('/api', playerRoutes);
 
 

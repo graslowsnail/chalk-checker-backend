@@ -8,6 +8,10 @@ const {
   getAllPrizepicksData,
 } = require('../controllers/PrizePicks.js');
 
+const {
+  savePlayersAndProjections,
+} = require('../controllers/PrizePicksTest.js');
+
 // GET all players
 router.get('/players', getPlayers);
 
@@ -16,5 +20,7 @@ router.get('/projections', getProjections);
 
 // GET all prize picks data
 router.get('/alldata', getAllPrizepicksData);
+
+router.get('/yes', savePlayersAndProjections);
 
 module.exports = router;
